@@ -5,7 +5,7 @@ import 'package:great_places/helpers/db_helper.dart';
 import 'package:great_places/models/place.dart';
 
 class GreatPlaces with ChangeNotifier {
-  final List<Place> _items = [];
+  List<Place> _items = [];
 
   // retrieves a copy of the items do that we
   // can get access to the copy of the items from anywhere on the app
@@ -27,12 +27,32 @@ class GreatPlaces with ChangeNotifier {
     _items.add(newPlace);
     notifyListeners();
     DBHelper.insert(
-      'places',
+      'user_places',
       {
         'id': newPlace.id,
         'title': newPlace.title,
         'image': newPlace.image.path,
       },
     );
+  }
+
+  Future<void> fetchPlaces() async {
+    final placeList = await DBHelper.getData('user_places');
+    _items = placeList
+        .map(
+          (item) => Place(
+            id: item['id'],
+            title: item['title'],
+            location: PlaceLocation(
+              latitude: null,
+              longitude: null,
+              address: null,
+            ),
+            image: File(item['image']),
+          ),
+        )
+        .toList();
+    //to inform interested places about the set of newly loaded data
+    notifyListeners();
   }
 }
