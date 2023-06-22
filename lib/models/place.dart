@@ -15,8 +15,8 @@ class Place {
 }
 
 class PlaceLocation {
-  final double latitude;
-  final double longitude;
+  final double? latitude;
+  final double? longitude;
   final String? address;
 
   PlaceLocation({
