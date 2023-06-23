@@ -23,7 +23,7 @@ class _ImageInputState extends State<ImageInput> {
   Future<void> _takePhoto() async {
     final picker = ImagePicker();
     final imageFile = await picker.pickImage(
-      source: ImageSource.camera,
+      source: ImageSource.gallery,
       maxWidth: 600,
     );
     if (imageFile == null) {
@@ -32,7 +32,9 @@ class _ImageInputState extends State<ImageInput> {
     setState(() {
       _storedImage = File(imageFile.path);
     });
+
     final appDir = await sys_paths.getApplicationDocumentsDirectory();
+    // The basename is the final rightmost segment of the file path;
     final fileName = path.basename(imageFile.path);
     final savedImage =
         await File(imageFile.path).copy('${appDir.path}/$fileName');

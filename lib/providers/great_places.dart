@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:great_places/helpers/db_helper.dart';
+import 'package:great_places/helpers/location_helper.dart';
 import 'package:great_places/models/place.dart';
 
 class GreatPlaces with ChangeNotifier {
@@ -13,16 +14,25 @@ class GreatPlaces with ChangeNotifier {
     return [..._items];
   }
 
-  void addPlace(String title, File image) {
+  Future<void> addPlace(
+    String title,
+    File image,
+    PlaceLocation pickedLocation,
+  ) async {
+    final address = await LocationHelper.getPlaceAddress(
+      pickedLocation.latitude,
+      pickedLocation.longitude,
+    );
+    final updatedLocation = PlaceLocation(
+      latitude: pickedLocation.latitude,
+      longitude: pickedLocation.longitude,
+      address: address,
+    );
     final newPlace = Place(
       id: DateTime.now().toString(),
       title: title,
       image: image,
-      location: const PlaceLocation(
-        latitude: 36.792,
-        longitude: -1.296,
-        address: null,
-      ),
+      location: updatedLocation,
     );
     _items.add(newPlace);
     notifyListeners();
@@ -32,6 +42,9 @@ class GreatPlaces with ChangeNotifier {
         'id': newPlace.id,
         'title': newPlace.title,
         'image': newPlace.image.path,
+        'loc_lat': newPlace.location.latitude,
+        'loc_lng': newPlace.location.longitude,
+        'address': newPlace.location.address!,
       },
     );
   }
@@ -43,12 +56,14 @@ class GreatPlaces with ChangeNotifier {
           (item) => Place(
             id: item['id'],
             title: item['title'],
-            location: const PlaceLocation(
-              latitude: 36.792,
-              longitude: -1.296,
-              address: null,
+            image: File(
+              item['image'],
             ),
-            image: File(item['image']),
+            location: PlaceLocation(
+              latitude: item['loc_lat'],
+              longitude: item['loc_lng'],
+              address: item['address'],
+            ),
           ),
         )
         .toList();

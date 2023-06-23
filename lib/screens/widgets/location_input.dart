@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:great_places/helpers/location_helper.dart';
 import 'package:great_places/screens/map_screen.dart';
 import 'package:location/location.dart';
 
 class LocationInput extends StatefulWidget {
-  const LocationInput({super.key});
+  const LocationInput({
+    super.key,
+    required this.onSelectPlace,
+  });
+
+  final Function onSelectPlace;
 
   @override
   State<LocationInput> createState() => _LocationInputState();
@@ -12,6 +18,17 @@ class LocationInput extends StatefulWidget {
 
 class _LocationInputState extends State<LocationInput> {
   String? _previewImageUrl;
+
+  void _showPreview(double lat, double lng) {
+    final staticMapImageUrl = LocationHelper.generateLocationPreviewImage(
+      latitude: lat,
+      longitude: lng,
+    );
+
+    setState(() {
+      _previewImageUrl = staticMapImageUrl;
+    });
+  }
 
   Future<void> _getCurrentUserLocation() async {
     // final locData = await Location().getLocation();
@@ -21,6 +38,7 @@ class _LocationInputState extends State<LocationInput> {
     PermissionStatus permissionGranted;
     LocationData locationData;
 
+    // checking if location service is on
     serviceEnabled = await location.serviceEnabled();
     if (!serviceEnabled) {
       serviceEnabled = await location.requestService();
@@ -29,6 +47,7 @@ class _LocationInputState extends State<LocationInput> {
       }
     }
 
+    // ask for permissions for app to access location functionality
     permissionGranted = await location.hasPermission();
     if (permissionGranted == PermissionStatus.denied) {
       permissionGranted = await location.requestPermission();
@@ -39,22 +58,19 @@ class _LocationInputState extends State<LocationInput> {
 
     locationData = await location.getLocation();
 
+    _showPreview(
+      locationData.latitude!,
+      locationData.longitude!,
+    );
     // print(
     //     'latitude: ${locationData.latitude}\n longitude: ${locationData.longitude}');
 
-    final staticMapImageUrl = LocationHelper.generateLocationPreviewImage(
-      latitude: locationData.latitude!,
-      longitude: locationData.longitude!,
-    );
-
-    setState(() {
-      _previewImageUrl = staticMapImageUrl;
-    });
+    widget.onSelectPlace(locationData.latitude!, locationData.longitude!);
   }
 
   Future<void> _selectOnMap() async {
-    final selectedLocation =
-        await Navigator.of(context).pushNamed(MapScreen.routeName);
+    final LatLng selectedLocation =
+        await Navigator.of(context).pushNamed(MapScreen.routeName) as LatLng;
     //     await Navigator.of(context).push(
     //   MaterialPageRoute(
     //     builder: (context) => const MapScreen(
@@ -63,9 +79,20 @@ class _LocationInputState extends State<LocationInput> {
     //   ),
     // );
 
-    if (selectedLocation == null) {
-      return;
-    }
+    // if (selectedLocation == null) {
+    //   return;
+    // }
+
+    // showing a preview of the map on the location chosen and displaying it.
+    _showPreview(
+      selectedLocation.latitude,
+      selectedLocation.longitude,
+    );
+
+    widget.onSelectPlace(selectedLocation.latitude, selectedLocation.longitude);
+
+    // print(
+    //     'latitude: ${selectedLocation.latitude}\n longitude: ${selectedLocation.longitude}');
   }
 
   @override
