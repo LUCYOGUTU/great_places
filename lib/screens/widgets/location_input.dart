@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:great_places/helpers/location_helper.dart';
 import 'package:location/location.dart';
 
 class LocationInput extends StatefulWidget {
@@ -36,6 +37,16 @@ class _LocationInputState extends State<LocationInput> {
     }
 
     locationData = await location.getLocation();
+    // GoogleMapsAPIKey=AIzaSyDxfSjFl15aaHky9uIKMW_Ra5-domzPzbI
+
+    final staticMapImageUrl = LocationHelper.generateLocationPreviewImage(
+      latitude: locationData.latitude!,
+      longitude: locationData.longitude!,
+    );
+
+    setState(() {
+      _previewImageUrl = staticMapImageUrl;
+    });
   }
 
   @override
@@ -56,7 +67,7 @@ class _LocationInputState extends State<LocationInput> {
                 )
               : Image.network(
                   _previewImageUrl!,
-                  fit: BoxFit.cover,
+                  fit: BoxFit.fill,
                   width: double.infinity,
                 ),
         ),
